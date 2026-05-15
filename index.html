@@ -2,22 +2,885 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
-  <title>我的网站</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>探索未来</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+SC:wght@300;400;700&display=swap" rel="stylesheet">
   <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #05050a;
+      --surface: #0c0c14;
+      --accent: #00f0ff;
+      --accent2: #ff2d75;
+      --text-primary: #e8e6e3;
+      --text-muted: #5a5a6e;
+      --glow: 0 0 30px rgba(0, 240, 255, 0.3);
+    }
+
+    html { scroll-behavior: smooth; }
+
     body {
-      font-family: sans-serif;
+      font-family: 'Noto Sans SC', sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      overflow-x: hidden;
+      cursor: default;
+    }
+
+    /* ── Grain Overlay ── */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* ── Canvas Background ── */
+    #particles {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+    }
+
+    /* ── Navigation ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 1.5rem 3rem;
       display: flex;
+      justify-content: space-between;
+      align-items: center;
+      backdrop-filter: blur(12px);
+      background: rgba(5, 5, 10, 0.6);
+      border-bottom: 1px solid rgba(0, 240, 255, 0.06);
+      animation: fadeDown 0.8s ease forwards;
+    }
+
+    .logo {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      font-size: 1.3rem;
+      letter-spacing: 0.15em;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2.5rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: color 0.3s ease, text-shadow 0.3s ease;
+    }
+
+    .nav-links a:hover {
+      color: var(--accent);
+      text-shadow: 0 0 12px rgba(0, 240, 255, 0.5);
+    }
+
+    /* ── Hero Section ── */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      margin: 0;
-      background: #1a1a2e;
-      color: #eee;
+      text-align: center;
+      z-index: 1;
+      padding: 2rem;
     }
-    h1 { font-size: 3rem; }
+
+    .hero-badge {
+      display: inline-block;
+      padding: 0.4rem 1.2rem;
+      border: 1px solid rgba(0, 240, 255, 0.2);
+      border-radius: 50px;
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      opacity: 0;
+      animation: fadeUp 0.6s ease 0.3s forwards;
+      margin-bottom: 2rem;
+    }
+
+    .hero h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(2.5rem, 7vw, 6rem);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.5s forwards;
+    }
+
+    .hero h1 .gradient-text {
+      background: linear-gradient(135deg, var(--accent) 0%, #7b61ff 50%, var(--accent2) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-size: 200% 200%;
+      animation: gradientShift 4s ease infinite;
+    }
+
+    .hero p {
+      max-width: 540px;
+      margin-top: 1.5rem;
+      font-size: 1.1rem;
+      font-weight: 300;
+      color: var(--text-muted);
+      line-height: 1.8;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.7s forwards;
+    }
+
+    .hero-cta {
+      margin-top: 2.5rem;
+      display: flex;
+      gap: 1rem;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.9s forwards;
+    }
+
+    .btn {
+      padding: 0.9rem 2.2rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Noto Sans SC', sans-serif;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #7b61ff);
+      color: #05050a;
+      border: none;
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.2);
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 0 45px rgba(0, 240, 255, 0.4);
+      transform: translateY(-2px);
+      letter-spacing: 0.16em;
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--text-primary);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-outline:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    /* ── Scroll Indicator ── */
+    .scroll-indicator {
+      position: absolute;
+      bottom: 3rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 1.2s forwards;
+    }
+
+    .scroll-indicator span {
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .scroll-line {
+      width: 1px;
+      height: 40px;
+      background: linear-gradient(to bottom, var(--accent), transparent);
+      animation: scrollPulse 2s ease infinite;
+    }
+
+    /* ── Section Styles ── */
+    section {
+      position: relative;
+      z-index: 1;
+      padding: 8rem 3rem;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 5rem;
+    }
+
+    .section-header h2 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      font-weight: 700;
+    }
+
+    .section-header .line {
+      width: 60px;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      margin: 1.2rem auto 0;
+    }
+
+    /* ── Features Grid ── */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .feature-card {
+      background: rgba(12, 12, 20, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: 16px;
+      padding: 2.5rem;
+      position: relative;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(40px);
+      transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    .feature-card.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    .feature-card:hover::before {
+      opacity: 1;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(0, 240, 255, 0.1);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(0, 240, 255, 0.04);
+    }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.1), rgba(123, 97, 255, 0.1));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .feature-card h3 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 0.8rem;
+      letter-spacing: 0.03em;
+    }
+
+    .feature-card p {
+      font-size: 0.9rem;
+      line-height: 1.7;
+      color: var(--text-muted);
+      font-weight: 300;
+    }
+
+    /* ── Stats Section ── */
+    .stats-section {
+      background: linear-gradient(180deg, transparent 0%, rgba(0, 240, 255, 0.02) 50%, transparent 100%);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2rem;
+      max-width: 900px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .stat-item {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    .stat-item.visible {
+      opacity: 1;
+      transform: translateY(0);
+      transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    .stat-number {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .stat-label {
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    /* ── Showcase ── */
+    .showcase {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .showcase-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    .showcase-item {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      aspect-ratio: 16 / 10;
+      background: var(--surface);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      opacity: 0;
+      transform: scale(0.95);
+      cursor: pointer;
+    }
+
+    .showcase-item.visible {
+      opacity: 1;
+      transform: scale(1);
+      transition: all 0.7s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    .showcase-item .overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 2rem;
+      background: linear-gradient(to top, rgba(5, 5, 10, 0.9) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    .showcase-item:hover .overlay {
+      opacity: 1;
+    }
+
+    .showcase-item h3 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .showcase-item p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .showcase-item .bg-anim {
+      position: absolute;
+      inset: 0;
+      opacity: 0.4;
+      transition: opacity 0.4s ease;
+    }
+
+    .showcase-item:hover .bg-anim {
+      opacity: 0.7;
+    }
+
+    .showcase-item:nth-child(1) .bg-anim {
+      background: linear-gradient(135deg, #0a1628, #0d2847, #061220);
+    }
+
+    .showcase-item:nth-child(2) .bg-anim {
+      background: linear-gradient(135deg, #1a0520, #2d0a3e, #120418);
+    }
+
+    .showcase-item:nth-child(3) .bg-anim {
+      background: linear-gradient(135deg, #0d1f0a, #1a3515, #081505);
+    }
+
+    .showcase-item:nth-child(4) .bg-anim {
+      background: linear-gradient(135deg, #1f1a05, #3d3208, #151103);
+    }
+
+    /* ── CTA Section ── */
+    .cta-section {
+      text-align: center;
+    }
+
+    .cta-box {
+      max-width: 650px;
+      margin: 0 auto;
+      padding: 4rem 3rem;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 24px;
+      background: rgba(12, 12, 20, 0.6);
+      backdrop-filter: blur(10px);
+      position: relative;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    .cta-box.visible {
+      opacity: 1;
+      transform: translateY(0);
+      transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    .cta-box::before {
+      content: '';
+      position: absolute;
+      top: -1px; left: -1px; right: -1px; bottom: -1px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, var(--accent), transparent, var(--accent2));
+      z-index: -1;
+      opacity: 0.15;
+    }
+
+    .cta-box h2 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .cta-box p {
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+      font-weight: 300;
+    }
+
+    /* ── Footer ── */
+    footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 3rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    /* ── Floating Orbs ── */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+      animation: orbFloat 15s ease-in-out infinite;
+    }
+
+    .orb-1 {
+      width: 400px; height: 400px;
+      background: rgba(0, 240, 255, 0.06);
+      top: 20%; left: -10%;
+      animation-delay: 0s;
+    }
+
+    .orb-2 {
+      width: 350px; height: 350px;
+      background: rgba(123, 97, 255, 0.06);
+      top: 50%; right: -10%;
+      animation-delay: -5s;
+    }
+
+    .orb-3 {
+      width: 300px; height: 300px;
+      background: rgba(255, 45, 117, 0.05);
+      bottom: 10%; left: 30%;
+      animation-delay: -10s;
+    }
+
+    /* ── Magnetic Cursor ── */
+    .cursor-glow {
+      position: fixed;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0, 240, 255, 0.07) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+      transform: translate(-50%, -50%);
+      transition: left 0.15s ease, top 0.15s ease;
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(25px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes gradientShift {
+      0%, 100% { background-position: 0% 50%; }
+      50%      { background-position: 100% 50%; }
+    }
+
+    @keyframes scrollPulse {
+      0%, 100% { opacity: 0.3; transform: scaleY(1); }
+      50%      { opacity: 1; transform: scaleY(1.3); }
+    }
+
+    @keyframes orbFloat {
+      0%, 100% { transform: translate(0, 0); }
+      33%      { transform: translate(30px, -40px); }
+      66%      { transform: translate(-20px, 30px); }
+    }
+
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.5rem; }
+      .nav-links { display: none; }
+      section { padding: 5rem 1.5rem; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .showcase-grid { grid-template-columns: 1fr; }
+      .hero-cta { flex-direction: column; align-items: center; }
+    }
   </style>
 </head>
 <body>
-  <h1>你好，这是我的网站！</h1>
+
+  <!-- Background Particles -->
+  <canvas id="particles"></canvas>
+
+  <!-- Ambient Orbs -->
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <!-- Cursor Glow -->
+  <div class="cursor-glow" id="cursorGlow"></div>
+
+  <!-- Navigation -->
+  <nav>
+    <div class="logo">NOVA</div>
+    <ul class="nav-links">
+      <li><a href="#features">功能</a></li>
+      <li><a href="#stats">数据</a></li>
+      <li><a href="#showcase">案例</a></li>
+      <li><a href="#contact">联系</a></li>
+    </ul>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-badge">&#9670; 下一代数字体验平台</div>
+    <h1>构建未来的<br><span class="gradient-text">无限可能</span></h1>
+    <p>以极致性能与沉浸式设计，打造超越想象的数字产品。每一次交互，都是一场视觉盛宴。</p>
+    <div class="hero-cta">
+      <a href="#features" class="btn btn-primary">开始探索</a>
+      <a href="#showcase" class="btn btn-outline">查看案例</a>
+    </div>
+    <div class="scroll-indicator">
+      <span>向下滚动</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features">
+    <div class="section-header">
+      <h2>核心能力</h2>
+      <div class="line"></div>
+    </div>
+    <div class="features">
+      <div class="feature-card">
+        <div class="feature-icon">&#9881;</div>
+        <h3>极速性能</h3>
+        <p>基于先进的渲染引擎，页面加载时间缩短至毫秒级，为用户带来丝滑般的操作体验。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#9672;</div>
+        <h3>智能适配</h3>
+        <p>响应式架构自动识别设备与场景，从桌面到移动端，始终呈现最佳视觉效果。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#9733;</div>
+        <h3>安全可靠</h3>
+        <p>端到端加密传输，多层安全防护机制，确保数据在每一个环节都万无一失。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section class="stats-section" id="stats">
+    <div class="section-header">
+      <h2>数据说话</h2>
+      <div class="line"></div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-number" data-target="99.9">0</div>
+        <div class="stat-label">可用性 %</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" data-target="50">0</div>
+        <div class="stat-label">全球节点</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" data-target="12">0</div>
+        <div class="stat-label">毫秒响应</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" data-target="10">0</div>
+        <div class="stat-label">百万用户</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Showcase -->
+  <section id="showcase">
+    <div class="section-header">
+      <h2>精选案例</h2>
+      <div class="line"></div>
+    </div>
+    <div class="showcase">
+      <div class="showcase-grid">
+        <div class="showcase-item">
+          <div class="bg-anim"></div>
+          <div class="overlay">
+            <h3>深蓝数据中心</h3>
+            <p>企业级云端管理平台</p>
+          </div>
+        </div>
+        <div class="showcase-item">
+          <div class="bg-anim"></div>
+          <div class="overlay">
+            <h3>暗紫创意空间</h3>
+            <p>沉浸式品牌体验站</p>
+          </div>
+        </div>
+        <div class="showcase-item">
+          <div class="bg-anim"></div>
+          <div class="overlay">
+            <h3>翠绿生态引擎</h3>
+            <p>可持续发展数据可视化</p>
+          </div>
+        </div>
+        <div class="showcase-item">
+          <div class="bg-anim"></div>
+          <div class="overlay">
+            <h3>琥珀金融终端</h3>
+            <p>实时交易监控系统</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section" id="contact">
+    <div class="cta-box">
+      <h2>准备好开始了吗？</h2>
+      <p>加入我们，一起定义数字世界的下一个十年。</p>
+      <a href="#" class="btn btn-primary">立即加入</a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    &copy; 2026 NOVA &mdash; Crafted with precision
+  </footer>
+
+  <script>
+    // ── Particle Canvas ──
+    const canvas = document.getElementById('particles');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    let mouse = { x: -1000, y: -1000 };
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    class Particle {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 1.5 + 0.5;
+        this.speedX = (Math.random() - 0.5) * 0.4;
+        this.speedY = (Math.random() - 0.5) * 0.4;
+        this.opacity = Math.random() * 0.5 + 0.1;
+      }
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+
+        // Mouse repulsion
+        const dx = this.x - mouse.x;
+        const dy = this.y - mouse.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 120) {
+          const force = (120 - dist) / 120;
+          this.x += dx * force * 0.03;
+          this.y += dy * force * 0.03;
+        }
+
+        if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+          this.reset();
+        }
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(0, 240, 255, ${this.opacity})`;
+        ctx.fill();
+      }
+    }
+
+    const count = Math.min(120, Math.floor(window.innerWidth / 12));
+    for (let i = 0; i < count; i++) particles.push(new Particle());
+
+    function drawLines() {
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 100) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(0, 240, 255, ${0.06 * (1 - dist / 100)})`;
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        }
+      }
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => { p.update(); p.draw(); });
+      drawLines();
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    // ── Cursor Glow ──
+    const glow = document.getElementById('cursorGlow');
+    document.addEventListener('mousemove', e => {
+      glow.style.left = e.clientX + 'px';
+      glow.style.top = e.clientY + 'px';
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+    });
+
+    // ── Scroll Reveal ──
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => entry.target.classList.add('visible'), i * 120);
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+
+    document.querySelectorAll('.feature-card, .stat-item, .showcase-item, .cta-box').forEach(el => {
+      observer.observe(el);
+    });
+
+    // ── Counter Animation ──
+    const counterObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const nums = entry.target.querySelectorAll('.stat-number');
+          nums.forEach(num => {
+            const target = parseFloat(num.getAttribute('data-target'));
+            const isDecimal = target % 1 !== 0;
+            let current = 0;
+            const step = target / 60;
+            const timer = setInterval(() => {
+              current += step;
+              if (current >= target) {
+                current = target;
+                clearInterval(timer);
+              }
+              num.textContent = isDecimal ? current.toFixed(1) : Math.floor(current);
+            }, 25);
+          });
+          counterObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.3 });
+
+    counterObserver.observe(document.querySelector('.stats-grid'));
+
+    // ── Tilt on Feature Cards ──
+    document.querySelectorAll('.feature-card').forEach(card => {
+      card.addEventListener('mousemove', e => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const rotateX = (y - centerY) / 15;
+        const rotateY = (centerX - x) / 15;
+        card.style.transform = `perspective(800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-6px)`;
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = 'perspective(800px) rotateX(0) rotateY(0) translateY(0)';
+      });
+    });
+  </script>
 </body>
 </html>
